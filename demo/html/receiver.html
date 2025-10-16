@@ -31,10 +31,10 @@
       <pre id="events"></pre>
     </section>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-7S3xg4gJbN6UdfzThTcJqxCERqGN4YVYyYgPjqk4EQA=" crossorigin="anonymous"></script>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-r+w9u4eDe7m4blWdTpoWIjiuDzsjIHcWNsg24nOLhYVUkpDtkBiV0Eo7AkXWlknY" crossorigin="anonymous"></script>
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
-      $(function () {
+      $(document).ready(function () {
         const $events = $('#events');
         const pushEvent = (msg) => {
           const time = new Date().toLocaleTimeString();

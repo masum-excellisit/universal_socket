@@ -1,0 +1,16 @@
+{
+  "name": "universal_socket",
+  "version": "1.0.0",
+  "description": "A fully reusable real-time socket setup supporting: - ✅ One-to-One - ✅ One-to-Many - ✅ Many-to-One - ✅ Broadcast - ✅ Room Chat",
+  "main": "client_js_demo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  }
+}
