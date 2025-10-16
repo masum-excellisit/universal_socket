@@ -1,6 +1,7 @@
 # 🌐 Universal Socket.IO WebSocket System
 
 A fully reusable real-time socket setup supporting:
+
 - ✅ One-to-One
 - ✅ One-to-Many
 - ✅ Many-to-One
@@ -31,9 +32,21 @@ Server will start at:
 import { io } from "socket.io-client";
 const socket = io("http://localhost:3000");
 
-socket.emit("register", "user1");
-socket.emit("one_to_one", { toUserId: "user2", message: "Hello!" });
-socket.on("receive_one_to_one", data => console.log(data));
+socket.emit("register", "userId1");
+socket.emit("one_to_one", { toUserId: "userId2", message: "Hello!" });
+socket.on("receive_one_to_one", (data) => console.log(data));
+```
+
+Or by including via CDN:
+
+```html
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+  const socket = io("http://localhost:3000");
+  socket.emit("register", "userId1");
+  socket.emit("one_to_one", { toUserId: "userId2", message: "Hello!" });
+  socket.on("receive_one_to_one", (data) => console.log(data));
+</script>
 ```
 
 ---
@@ -42,13 +55,13 @@ socket.on("receive_one_to_one", data => console.log(data));
 
 ```dart
 final socket = SocketService();
-socket.connect("user1");
+socket.connect("userId1");
 
 socket.listenAll((event, data) {
   print("📨 $event -> $data");
 });
 
-socket.sendOneToOne("user2", "Hello user2");
+socket.sendOneToOne("userId2", "Hello userId2");
 socket.broadcast("Hi all!");
 ```
 
@@ -56,13 +69,13 @@ socket.broadcast("Hi all!");
 
 ## 🧩 Communication Types
 
-| Type | Emit Event | Description |
-|------|-------------|-------------|
-| One-to-One | `one_to_one` | Send message to specific user |
-| One-to-Many | `one_to_many` | Send message to multiple users |
-| Many-to-One | `many_to_one` | Multiple senders to one target |
-| Broadcast | `broadcast_all` | Send message to all users |
-| Room Chat | `room_message` | Send message inside joined room |
+| Type        | Emit Event      | Description                     |
+| ----------- | --------------- | ------------------------------- |
+| One-to-One  | `one_to_one`    | Send message to specific user   |
+| One-to-Many | `one_to_many`   | Send message to multiple users  |
+| Many-to-One | `many_to_one`   | Multiple senders to one target  |
+| Broadcast   | `broadcast_all` | Send message to all users       |
+| Room Chat   | `room_message`  | Send message inside joined room |
 
 ---
 
