@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Socket.IO Sender Demo</title>
+    <style>
+      body { font-family: sans-serif; margin: 2rem; display: grid; gap: 1.5rem; }
+      form { display: grid; gap: 0.5rem; max-width: 320px; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; }
+      label { display: grid; gap: 0.25rem; font-weight: 600; }
+      input, textarea, button { padding: 0.5rem; }
+      textarea { min-height: 60px; }
+      #log { max-width: 600px; height: 220px; overflow-y: auto; border: 1px solid #ddd; padding: 0.75rem; border-radius: 8px; background: #fafafa; font-size: 0.9rem; }
+      .row { display: flex; flex-wrap: wrap; gap: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Socket.IO Sender Demo</h1>
+    <div class="row">
+      <form id="register-form">
+        <strong>Register</strong>
+        <label>User ID<input id="register-user" required /></label>
+        <button type="submit">Register</button>
+      </form>
+
+      <form id="one-to-one-form">
+        <strong>One to One</strong>
+        <label>To User ID<input id="one-to-one-to" required /></label>
+        <label>Message<textarea id="one-to-one-msg" required></textarea></label>
+        <button type="submit">Send</button>
+      </form>
+
+      <form id="one-to-many-form">
+        <strong>One to Many</strong>
+        <label>To User IDs (comma separated)<input id="one-to-many-to" required /></label>
+        <label>Message<textarea id="one-to-many-msg" required></textarea></label>
+        <button type="submit">Send</button>
+      </form>
+
+      <form id="many-to-one-form">
+        <strong>Many to One</strong>
+        <label>Target User ID<input id="many-to-one-to" required /></label>
+        <label>Message<textarea id="many-to-one-msg" required></textarea></label>
+        <button type="submit">Send</button>
+      </form>
+
+      <form id="broadcast-form">
+        <strong>Broadcast</strong>
+        <label>Message<textarea id="broadcast-msg" required></textarea></label>
+        <button type="submit">Broadcast</button>
+      </form>
+
+      <form id="join-room-form">
+        <strong>Join Room</strong>
+        <label>Room<input id="join-room-name" required /></label>
+        <button type="submit">Join</button>
+      </form>
+
+      <form id="room-message-form">
+        <strong>Room Message</strong>
+        <label>Room<input id="room-msg-room" required /></label>
+        <label>Message<textarea id="room-msg-text" required></textarea></label>
+        <button type="submit">Send</button>
+      </form>
+    </div>
+
+    <section>
+      <h2>Log</h2>
+      <pre id="log"></pre>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-7S3xg4gJbN6UdfzThTcJqxCERqGN4YVYyYgPjqk4EQA=" crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-r+w9u4eDe7m4blWdTpoWIjiuDzsjIHcWNsg24nOLhYVUkpDtkBiV0Eo7AkXWlknY" crossorigin="anonymous"></script>
+    <script>
+      $(function () {
+        const $log = $('#log');
+        const appendLog = (msg) => {
+          const time = new Date().toLocaleTimeString();
+          $log.text(`${$log.text()}[${time}] ${msg}\n`);
+          $log.scrollTop($log[0].scrollHeight);
+        };
+
+        const socket = io('http://localhost:3000', { transports: ['websocket'] });
+
+        socket.on('connect', () => appendLog(`Connected with id ${socket.id}`));
+        socket.on('disconnect', () => appendLog('Disconnected'));
+        socket.onAny((event, payload) => appendLog(`Received ${event}: ${JSON.stringify(payload)}`));
+
+        $('#register-form').on('submit', function (e) {
+          e.preventDefault();
+          const userId = $.trim($('#register-user').val());
+          socket.emit('register', userId);
+          appendLog(`Sent register for ${userId}`);
+        });
+
+        $('#one-to-one-form').on('submit', function (e) {
+          e.preventDefault();
+          const toUserId = $.trim($('#one-to-one-to').val());
+          const message = $.trim($('#one-to-one-msg').val());
+          socket.emit('one_to_one', { toUserId, message });
+          appendLog(`Sent one_to_one to ${toUserId}`);
+        });
+
+        $('#one-to-many-form').on('submit', function (e) {
+          e.preventDefault();
+          const toUserIds = $('#one-to-many-to')
+            .val()
+            .split(',')
+            .map((id) => $.trim(id))
+            .filter(Boolean);
+          const message = $.trim($('#one-to-many-msg').val());
+          socket.emit('one_to_many', { toUserIds, message });
+          appendLog(`Sent one_to_many to [${toUserIds.join(', ')}]`);
+        });
+
+        $('#many-to-one-form').on('submit', function (e) {
+          e.preventDefault();
+          const toUserId = $.trim($('#many-to-one-to').val());
+          const message = $.trim($('#many-to-one-msg').val());
+          socket.emit('many_to_one', { toUserId, message });
+          appendLog(`Sent many_to_one to ${toUserId}`);
+        });
+
+        $('#broadcast-form').on('submit', function (e) {
+          e.preventDefault();
+          const message = $.trim($('#broadcast-msg').val());
+          socket.emit('broadcast_all', { message });
+          appendLog('Broadcasted to all');
+        });
+
+        $('#join-room-form').on('submit', function (e) {
+          e.preventDefault();
+          const room = $.trim($('#join-room-name').val());
+          socket.emit('join_room', room);
+          appendLog(`Requested join for room ${room}`);
+        });
+
+        $('#room-message-form').on('submit', function (e) {
+          e.preventDefault();
+          const room = $.trim($('#room-msg-room').val());
+          const message = $.trim($('#room-msg-text').val());
+          socket.emit('room_message', { room, message });
+          appendLog(`Sent room_message to ${room}`);
+        });
+      });
+    </script>
+  </body>
+</html>

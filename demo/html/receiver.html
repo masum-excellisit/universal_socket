@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Socket.IO Receiver Demo</title>
+    <style>
+      body { font-family: sans-serif; margin: 2rem; display: grid; gap: 1.5rem; }
+      form { display: grid; gap: 0.5rem; max-width: 320px; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; }
+      label { display: grid; gap: 0.25rem; font-weight: 600; }
+      input, button { padding: 0.5rem; }
+      #events { max-width: 640px; height: 280px; overflow-y: auto; border: 1px solid #ddd; padding: 0.75rem; border-radius: 8px; background: #f5f5f5; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Socket.IO Receiver Demo</h1>
+
+    <form id="receiver-register-form">
+      <strong>Register</strong>
+      <label>User ID<input id="receiver-user" required /></label>
+      <button type="submit">Register</button>
+    </form>
+
+    <form id="receiver-join-form">
+      <strong>Join Room</strong>
+      <label>Room<input id="receiver-room" required /></label>
+      <button type="submit">Join</button>
+    </form>
+
+    <section>
+      <h2>Incoming Events</h2>
+      <pre id="events"></pre>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-7S3xg4gJbN6UdfzThTcJqxCERqGN4YVYyYgPjqk4EQA=" crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-r+w9u4eDe7m4blWdTpoWIjiuDzsjIHcWNsg24nOLhYVUkpDtkBiV0Eo7AkXWlknY" crossorigin="anonymous"></script>
+    <script>
+      $(function () {
+        const $events = $('#events');
+        const pushEvent = (msg) => {
+          const time = new Date().toLocaleTimeString();
+          $events.text(`${$events.text()}[${time}] ${msg}\n`);
+          $events.scrollTop($events[0].scrollHeight);
+        };
+
+        const socket = io('http://localhost:3000', { transports: ['websocket'] });
+
+        socket.on('connect', () => pushEvent(`Connected with id ${socket.id}`));
+        socket.on('disconnect', () => pushEvent('Disconnected'));
+
+        ['receive_one_to_one', 'receive_one_to_many', 'receive_many_to_one', 'receive_broadcast', 'receive_room_message'].forEach((eventName) => {
+          socket.on(eventName, (payload) => pushEvent(`${eventName}: ${JSON.stringify(payload)}`));
+        });
+
+        socket.onAny((eventName, payload) => pushEvent(`onAny -> ${eventName}: ${JSON.stringify(payload)}`));
+
+        $('#receiver-register-form').on('submit', function (e) {
+          e.preventDefault();
+          const userId = $.trim($('#receiver-user').val());
+          socket.emit('register', userId);
+          pushEvent(`Sent register for ${userId}`);
+        });
+
+        $('#receiver-join-form').on('submit', function (e) {
+          e.preventDefault();
+          const room = $.trim($('#receiver-room').val());
+          socket.emit('join_room', room);
+          pushEvent(`Requested join for room ${room}`);
+        });
+      });
+    </script>
+  </body>
+</html>
